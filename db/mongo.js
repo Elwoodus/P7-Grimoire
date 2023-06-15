@@ -1,9 +1,8 @@
+require("dotenv").config();
 const mongoose = require('mongoose');
-const PASSWORD = "OMsXG3SHS7OC8Env";
-const USER = "theguard";
-const DB_URL =
-`mongodb+srv://${USER}:${PASSWORD}@cluster0.qldiayi.mongodb.net/?retryWrites=true&w=majority`
-console.log("DB_URL", DB_URL);
+
+const DB_URL =`mongodb+srv://${process.env.USER}:${process.env.PASSWORD}@${process.env.DB_DOMAIN}`;
+
 
 async function connect() {
     try {
@@ -15,5 +14,12 @@ console.log("Connected to DB");
 }
 connect();
 
+const UserSchema = new mongoose.Schema({
+    email: String,
+    password : String
+});
 
-module.exports = {};
+const User = mongoose.model("User", UserSchema);
+
+
+module.exports = { User};
