@@ -3,10 +3,28 @@ const app = express();
 const {User} = require("./db/mongo");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
+const {books} = require("./db/books");
+const multer = require("multer");
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, "uploads");
+    },
+    filename: function (req, file, cb) {
+        const fileName = file.originalname.toLowerCase() + Date.now() + ".jpg";
+        cb(null, Date.now() + "-" + fileName);
+    }
+})
+
+const upload = multer ({
+    storage: storage
+})
+
 const PORT = 4000;
 
 app.use(cors());
 app.use(express.json());
+
 
 function sayHi(req, res) {
     res.send("Hello World");
@@ -15,6 +33,17 @@ function sayHi(req, res) {
 app.get("/", sayHi);
 app.post("/api/auth/signup", signUp);
 app.post("/api/auth/login", login);
+app.get("/api/books", getBooks);
+app.post("/api/books", upload.single("image"), postBook);
+
+
+function postBook(req, res) {
+    const book = req.body;
+}
+
+function getBooks(req, res){
+    res.send(books);
+}
 
 app.listen(PORT, function () {
     console.log(`Server is running on : ${PORT}`);
@@ -65,7 +94,7 @@ async function login(req, res) {
     }
 
     const passwordInDb = userInDb.password;
-    if (!isPaswwordCorrect(req.body.password, passwordInDb)) {
+    if (!isPasswordCorrect(req.body.password, passwordInDb)) {
         res.status(400).send("Wrong password");
         return;
     }
@@ -86,3 +115,4 @@ function isPasswordCorrect(password, hash) {
 return bcrypt.compareSync(password, hash);
 
 }
+
