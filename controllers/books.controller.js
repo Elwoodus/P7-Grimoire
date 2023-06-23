@@ -1,7 +1,6 @@
-const { books } = require("../db/books");
 const { Book } = require("../models/Book");
 const express = require("express")
-const { upload} = require("../middlewares/multer");
+const { upload } = require("../middlewares/multer");
 
 async function postBook(req, res) {
     const file = req.file;
@@ -17,7 +16,8 @@ async function postBook(req, res) {
         }
 }
 
-function getBooks(req, res) {
+async function getBooks(req, res) {
+    const books = await Book.find();
     res.send(books);
 }
 
