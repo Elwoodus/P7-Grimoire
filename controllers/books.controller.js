@@ -4,10 +4,56 @@ const { upload } = require("../middlewares/multer");
 const jwt = require("jsonwebtoken");
 
 const booksRouter = express.Router();
+booksRouter.get("/bestrating", getBestRating);
 booksRouter.get("/:id", getBookById);
 booksRouter.get("/", getBooks);
 booksRouter.post("/", checkToken, upload.single("image"), postBook);
 booksRouter.delete("/:id", checkToken, deleteBook);
+booksRouter.put("/:id", checkToken, upload.single("image"), putBook);
+
+async function getBestRating(req, res) {
+
+    try {
+    const booksWithBestRatings = await Book.find().sort({ rating: -1}).limit(3);
+    booksWithBestRatings.forEach ((book) => {
+        book.imageUrl = getAbsoluteImagePath(book.imageUrl);
+    });
+        res.send(booksWithBestRatings);
+        } catch (e) {
+            console.error(e);
+            res.status(500).send("Something went wrong:" + e.message);
+        }
+    }
+
+
+async function putBook(req, res) {
+    
+    const id = req.params.id;
+    const book = JSON.parse(req.body.book);
+
+    const bookInDb = await Book.findById(id);
+        if (bookInDb == null) {
+            res.status(404).send("Book not found");
+            return;
+        }
+        const userIdInDb = bookInDb.userId;
+        const userIdInToken = req.tokenPayload.userId;
+        if (userIdInDb != userIdInToken) {
+            res.status(403).send("You cannot delete other people's books");
+            return;
+        }
+
+    const newBook = {}
+    if (book.title) newBook.title = book.title;
+    if (book.author) newBook.author = book.author;
+    if (book.year) newBook.year = book.year;
+    if (book.genre) newBook.genre = book.genre;
+    if (req.file != null) newBook.imageUrl = req.file.filename;
+    
+
+    await Book.findByIdAndUpdate(id, newBook);
+    res.send("Book updated");
+}
 
 async function deleteBook(req, res) {
     const id = req.params.id;
