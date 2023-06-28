@@ -20,6 +20,7 @@ async function postRating(req, res) {
    }
    const rating = req.body.rating; 
    const userId = req.tokenPayload.userId;
+   try {
    const book = await Book.findById(id);
    if (book == null) {
     res.status(404).send("Book not found");
@@ -34,7 +35,11 @@ async function postRating(req, res) {
    ratingsInDb.push(newRating);
    book.averageRating = calculateAverageRating(ratingsInDb);
    await book.save();
-   res.send("Rating posted");
+   res.send(book);
+    } catch (e) {
+        console.error(e)
+        res.status(500).send("Something went wrong" + e.message)
+    }
 }
 
 function calculateAverageRating(ratings) {
@@ -58,9 +63,9 @@ async function getBestRating(req, res) {
 
 
 async function putBook(req, res) {
-    
+    console.log(req.body);
     const id = req.params.id;
-    const book = JSON.parse(req.body.book);
+    const book = req.body;
 
     const bookInDb = await Book.findById(id);
         if (bookInDb == null) {
