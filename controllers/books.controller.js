@@ -1,11 +1,30 @@
 const { Book } = require("../models/Book");
 const express = require("express");
 const { upload } = require("../middlewares/multer");
+const jwt = require("jsonwebtoken");
 
 const booksRouter = express.Router();
 booksRouter.get("/:id", getBookById);
 booksRouter.get("/", getBooks);
-booksRouter.post("/", upload.single("image"), postBook);
+booksRouter.post("/", checkToken, upload.single("image"), postBook);
+
+function checkToken(req, res, next) {
+    const headers = req.headers;
+    const authorization = headers.authorization;
+    if (authorization == null) {
+        res.status(401).send("Unauthorized");
+        return;
+    }
+    const token = authorization.split(" ")[1];
+    try {
+    const jwtSecret = String(process.env.JWT_SECRET); 
+    const tokenPayload = jwt.verify(token, jwtSecret);
+    next();
+    } catch (e) {
+        console.error(e);
+        res.status(401).send("Unauthorized");
+    }
+}
 
 async function getBookById(req,res) {
     const id = req.params.id;

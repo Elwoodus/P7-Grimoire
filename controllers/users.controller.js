@@ -59,7 +59,8 @@ function generateToken(idInDb) {
 const payload = {
     userId: idInDb
 }
-const token = jwt.sign(payload, "test", {
+const jwtSecret = String(process.env.JWT_SECRET);
+const token = jwt.sign(payload, jwtSecret, {
     expiresIn: "1d"
 });
 return token;
