@@ -10,6 +10,37 @@ booksRouter.get("/", getBooks);
 booksRouter.post("/", checkToken, upload.single("image"), postBook);
 booksRouter.delete("/:id", checkToken, deleteBook);
 booksRouter.put("/:id", checkToken, upload.single("image"), putBook);
+booksRouter.post("/:id/rating", checkToken, postRating);
+
+async function postRating(req, res) {
+    const id = req.params.id;
+   if (id == null || id == "undefined") {
+    res.status(400).send("Book id is missing");
+    return;
+   }
+   const rating = req.body.rating; 
+   const userId = req.tokenPayload.userId;
+   const book = await Book.findById(id);
+   if (book == null) {
+    res.status(404).send("Book not found");
+    return;
+   }
+   const ratingsInDb = book.ratings;
+   const previousRatingFromCurrentUser = ratingsInDb.find((rating) => rating.userId == userId);
+   if (previousRatingFromCurrentUser != null) {
+    res.status(400).send("You have already rated this book");
+   }
+   const newRating = { userId: userId, grade: rating };
+   ratingsInDb.push(newRating);
+   book.averageRating = calculateAverageRating(ratingsInDb);
+   await book.save();
+   res.send("Rating posted");
+}
+
+function calculateAverageRating(ratings) {
+    const sumOfAllGrades = ratings.reduce((sum, rating) => sum + rating.grade, 0);
+    return sumOfAllGrades / ratings.length;
+}
 
 async function getBestRating(req, res) {
 
