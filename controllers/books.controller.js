@@ -178,7 +178,6 @@ function getAbsoluteImagePath(fileName) {
     return process.env.PUBLIC_URL + "/" + process.env.IMAGES_FOLDER_PATH + "/" + fileName;
 }
 
-
-
+ 
 
 module.exports = { booksRouter };
